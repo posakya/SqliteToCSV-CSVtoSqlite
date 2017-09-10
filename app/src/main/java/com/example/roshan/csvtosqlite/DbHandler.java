@@ -24,15 +24,16 @@ public class DbHandler extends SQLiteOpenHelper {
     public static final String col_2="Company";
     public static final String col_3="Name";
     public static final String col_4="Price";
+    public static final String col_5="category";
 
-
+    public static final String col_1=" _id";
     public DbHandler(Context context) {
         super(context, database_name, null,1);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("create table " + table_name + "( Company integer,Name text,Price text)");
+        db.execSQL("create table " + table_name + "( _id integer primary key autoincrement ,Company integer,Name text,Price text,category text)");
 
     }
 
@@ -43,23 +44,30 @@ public class DbHandler extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-     public void insertData(String[] Company, String[] Name, String[] Price){
-        SQLiteDatabase db=this.getWritableDatabase();
-    ContentValues values=new ContentValues();
-    values.put(col_2, String.valueOf(Company));
-    values.put(col_3, String.valueOf(Name));
-    values.put(col_4, String.valueOf(Price));
-         db.insert("cart",null,values);
-//    int u = db.update("cart", values, "Company=?", new String[]{String.valueOf(Company)});
-//    if (u == 0) {
-//        db.insertWithOnConflict("cart", null, values, SQLiteDatabase.CONFLICT_REPLACE);
-//    }
-}
-    public Cursor viewData(){
-        SQLiteDatabase db=this.getWritableDatabase();
-        //Cursor cr=db.rawQuery("select distinct item_name,item_price,quantity from " + table_name,null);
-     Cursor cr =  db.rawQuery( "select * from cart ",null);
 
+
+    public long insertDB(String[] RowData)
+    {
+
+        SQLiteDatabase mDb=this.getWritableDatabase();
+        long result = 0;
+
+        ContentValues values = new ContentValues();
+        values.put(col_2, RowData[0]);
+        values.put(col_3, RowData[1]);
+        values.put(col_4, RowData[2]);
+        values.put(col_5, RowData[3]);
+        result = mDb.insert(table_name, null, values);
+        return result;
+    }
+
+
+        public Cursor viewData(){
+        SQLiteDatabase db=this.getWritableDatabase();
+
+        //Cursor cr=db.rawQuery("select distinct item_name,item_price,quantity from " + table_name,null);
+   //   Cursor cr =  db.rawQuery( "select * from cart where category = '"+cat+"'",null);
+        Cursor cr =  db.rawQuery( "select _id as _id, Company, Name, Price,category from cart ",null);
         if (cr != null) {
             cr.moveToFirst();
         }
@@ -69,23 +77,11 @@ public class DbHandler extends SQLiteOpenHelper {
 
     }
 
-//    public ArrayList<HashMap<String, String>> getAllProducts() {
-//        ArrayList<HashMap<String, String>> proList;
-//        proList = new ArrayList<HashMap<String, String>>();
-//        String selectQuery = "select _id as _id, Company, Name, Price from cart";
-//        SQLiteDatabase database = this.getWritableDatabase();
-//        Cursor cursor = database.rawQuery(selectQuery, null);
-//        if (cursor.moveToFirst()) {
-//            do {
-//                //Id, Company,Name,Price
-//                HashMap<String, String> map = new HashMap<String, String>();
-//                map.put("Company", cursor.getString(1));
-//                map.put("Name", cursor.getString(2));
-//                map.put("Price", cursor.getString(3));
-//                proList.add(map);
-//            } while (cursor.moveToNext());
-//        }
-//
-//        return proList;
-//    }
+    public void Delete(){
+        SQLiteDatabase db=this.getWritableDatabase();
+       String del="delete from cart";
+       db.execSQL(del);
+    }
+
+
 }

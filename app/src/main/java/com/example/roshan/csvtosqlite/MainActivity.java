@@ -15,9 +15,11 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CursorAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
@@ -29,18 +31,21 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 
 import au.com.bytecode.opencsv.CSVWriter;
 
+import static android.R.attr.data;
 import static com.example.roshan.csvtosqlite.DbHandler.col_2;
 import static com.example.roshan.csvtosqlite.DbHandler.col_3;
 import static com.example.roshan.csvtosqlite.DbHandler.col_4;
+import static com.example.roshan.csvtosqlite.DbHandler.col_5;
 import static com.example.roshan.csvtosqlite.DbHandler.table_name;
 
 public class MainActivity extends AppCompatActivity {
 
-    TextView txt_cursor;
+    ListView txt_cursor;
     DbHandler db1 ;
 //    Button btnimport;
 //    ListView lv;
@@ -53,10 +58,10 @@ public static final int requestcode = 1;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        txt_cursor=(TextView)findViewById(R.id.txt_cursor);
+        txt_cursor=(ListView) findViewById(R.id.txt_cursor);
         db1=new DbHandler(getApplicationContext());
         System.out.println("Table :"+table_name);
-        exportDataBaseIntoCSV();
+       // exportDataBaseIntoCSV();
 //        try {
 //
 //            startActivityForResult();
@@ -67,13 +72,15 @@ public static final int requestcode = 1;
 //
 //        }
         db1 = new DbHandler(getApplicationContext());
-        String mCSVfile = "text.csv";
-        System.out.println("Text file :" +mCSVfile);
+      // String mCSVfile = "punjabi_bhajan.csv";
+       String mCSVfile = "guru_bhajan.csv";
+       /// System.out.println("Text file :" +mCSVfile);
         AssetManager manager = MainActivity.this.getAssets();
 
         InputStream  inputStream = null;
         try {
-            inputStream = manager.open(mCSVfile);
+          //  inputStream = manager.open(mCSVfile);
+            inputStream =manager.open(mCSVfile);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -85,14 +92,23 @@ public static final int requestcode = 1;
 
         try {
             while ((line = buffer.readLine()) != null) {
-                String[] colums = line.split(",");
-                System.out.println("Column :"+colums);
-                db1.insertData(colums,colums,colums);
-                System.out.println("Inserting :");
+
+                    String[] RowData = line.replaceAll("\n\r","").split("/");
+                for(int i=0;i<RowData.length;i++){
+                    System.out.println("Rowdata "+RowData[i]);
+                }
+
+                  //  db1.insertDB(RowData);
+                    System.out.println("Inserting :");
+
                 Cursor cursor=db1.viewData();
                 System.out.println("Cursor size :"+cursor.getCount());
 
-                txt_cursor.setText("Cursor Size :"+cursor.getCount());
+                String[] from = {db1.col_2,db1.col_4};
+                int[] to = {R.id.txtproductcompany,R.id.txtproductprice};
+
+                CursorAdapter cd = new SimpleCursorAdapter(MainActivity.this, R.layout.v, cursor, from, to, 0);
+                txt_cursor.setAdapter(cd);
 
             }
         } catch (IOException e) {
@@ -101,42 +117,49 @@ public static final int requestcode = 1;
 
     }
 
-    //sqlite file to CSV
+//    //sqlite file to CSV
+//
+//    public void exportDataBaseIntoCSV(){
+//
+//
+//        DbHandler db = new DbHandler(getApplicationContext());//here Dbhandler is my database. you can create your db object.
+//        File exportDir = new File(Environment.getExternalStorageDirectory(), "");
+//
+//        if (!exportDir.exists())
+//        {
+//            exportDir.mkdirs();
+//        }
+//
+//        File file = new File(exportDir, "csvfilename.csv"+System.currentTimeMillis());
+//
+//        try
+//        {
+//            file.createNewFile();
+//            CSVWriter csvWrite = new CSVWriter(new FileWriter(file));
+//            SQLiteDatabase sql_db = db.getReadableDatabase();//here create a method ,and return SQLiteDatabaseObject.getReadableDatabase();
+//            Cursor curCSV = sql_db.rawQuery("SELECT * FROM "+DbHandler.table_name,null);
+//            csvWrite.writeNext(curCSV.getColumnNames());
+//
+//            while(curCSV.moveToNext())
+//            {
+//                //Which column you want to export you can add over here...
+//                String arrStr[] ={curCSV.getString(0),curCSV.getString(1), curCSV.getString(2)};
+//                csvWrite.writeNext(arrStr);
+//            }
+//
+//            csvWrite.close();
+//            curCSV.close();
+//        }
+//        catch(Exception sqlEx)
+//        {
+//            Log.e("Error:", sqlEx.getMessage(), sqlEx);
+//        }
+//    }
 
-    public void exportDataBaseIntoCSV(){
 
-
-        DbHandler db = new DbHandler(getApplicationContext());//here Dbhandler is my database. you can create your db object.
-        File exportDir = new File(Environment.getExternalStorageDirectory(), "");
-
-        if (!exportDir.exists())
-        {
-            exportDir.mkdirs();
-        }
-
-        File file = new File(exportDir, "csvfilename.csv"+System.currentTimeMillis());
-
-        try
-        {
-            file.createNewFile();
-            CSVWriter csvWrite = new CSVWriter(new FileWriter(file));
-            SQLiteDatabase sql_db = db.getReadableDatabase();//here create a method ,and return SQLiteDatabaseObject.getReadableDatabase();
-            Cursor curCSV = sql_db.rawQuery("SELECT * FROM "+DbHandler.table_name,null);
-            csvWrite.writeNext(curCSV.getColumnNames());
-
-            while(curCSV.moveToNext())
-            {
-                //Which column you want to export you can add over here...
-                String arrStr[] ={curCSV.getString(0),curCSV.getString(1), curCSV.getString(2)};
-                csvWrite.writeNext(arrStr);
-            }
-
-            csvWrite.close();
-            curCSV.close();
-        }
-        catch(Exception sqlEx)
-        {
-            Log.e("Error:", sqlEx.getMessage(), sqlEx);
-        }
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        db1.Delete();
     }
-    }
+}
